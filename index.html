@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아파트집사 — AI 법률 상담</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sidebar-w: 64px;
+      --panel-w: 320px;
+      --primary: #1a2a3a;
+      --accent: #5b6af4;
+      --accent-bg: #ededff;
+      --text: #1a1a1a;
+      --text-sm: #666;
+      --border: #e5e7eb;
+      --bg: #f7f8fa;
+      --user-bubble: #f0f1f4;
+      --card-bg: #ffffff;
+      --header-h: 52px;
+      --input-h: 64px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); height:100vh; overflow:hidden; }
+
+    /* ── 전체 레이아웃 ─────────────────────────────── */
+    .app { display:flex; height:100vh; }
+
+    /* ── 사이드바 ──────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: #fff;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .sidebar .sb-top { flex:1; width:100%; display:flex; flex-direction:column; align-items:center; gap:4px; }
+    .sidebar .sb-bot { width:100%; display:flex; flex-direction:column; align-items:center; gap:4px; padding-bottom:8px; }
+    .sb-icon {
+      width:40px; height:40px; border-radius:10px;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; color:#9ca3af; transition:all .15s;
+    }
+    .sb-icon:hover { background:#f3f4f6; color:#374151; }
+    .sb-icon.active { background:var(--accent-bg); color:var(--accent); }
+    .sb-icon svg { width:20px; height:20px; }
+    .sb-label {
+      font-size:10px; color:#9ca3af; font-weight:500;
+      letter-spacing:.5px; margin:8px 0 4px; width:100%;
+      text-align:center;
+    }
+    .sb-divider { width:32px; height:1px; background:var(--border); margin:8px 0; }
+
+    /* ── 채팅 영역 ─────────────────────────────────── */
+    .chat-wrap {
+      flex:1;
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      background:#fff;
+      border-right:1px solid var(--border);
+    }
+    .chat-header {
+      height:var(--header-h);
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 20px;
+      flex-shrink:0;
+      background:#fff;
+    }
+    .chat-header .back-btn {
+      display:flex; align-items:center; gap:6px;
+      font-size:13px; color:#374151; cursor:pointer;
+      padding:6px 8px; border-radius:6px;
+    }
+    .chat-header .back-btn:hover { background:#f3f4f6; }
+    .chat-header .help-btn {
+      width:28px; height:28px; border-radius:50%;
+      border:1.5px solid #d1d5db; display:flex;
+      align-items:center; justify-content:center;
+      font-size:12px; color:#6b7280; cursor:pointer;
+    }
+    .chat-messages {
+      flex:1;
+      overflow-y:auto;
+      padding:24px 28px;
+      display:flex;
+      flex-direction:column;
+      gap:20px;
+      scroll-behavior:smooth;
+    }
+    .chat-messages::-webkit-scrollbar { width:4px; }
+    .chat-messages::-webkit-scrollbar-thumb { background:#e5e7eb; border-radius:4px; }
+
+    /* 메시지 공통 */
+    .msg { display:flex; flex-direction:column; max-width:72%; animation:fadeUp .25s ease; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .msg.user { align-self:flex-end; align-items:flex-end; }
+    .msg.ai { align-self:flex-start; align-items:flex-start; max-width:100%; }
+
+    .msg-bubble {
+      padding:12px 16px;
+      border-radius:16px;
+      font-size:14px;
+      line-height:1.6;
+      color:var(--text);
+    }
+    .msg.user .msg-bubble { background:var(--user-bubble); border-radius:16px 4px 16px 16px; }
+    .msg.ai .msg-bubble {
+      background:transparent;
+      padding:0;
+      color:#1f2937;
+    }
+    .msg.ai .msg-bubble p { margin-bottom:8px; }
+    .msg.ai .msg-bubble p:last-child { margin-bottom:0; }
+
+    /* 빠른 답변 버튼 */
+    .quick-btns {
+      display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;
+    }
+    .qbtn {
+      padding:8px 16px;
+      border:1.5px solid #d1d5db;
+      border-radius:24px;
+      background:#fff;
+      font-size:13px;
+      font-family:'Noto Sans KR',sans-serif;
+      color:#374151;
+      cursor:pointer;
+      transition:all .15s;
+      white-space:nowrap;
+    }
+    .qbtn:hover { border-color:#374151; background:#f9fafb; }
+    .qbtn.selected { border-color:#1a2a3a; background:#f0f1f4; color:#1a2a3a; font-weight:500; }
+    .qbtn:disabled { opacity:.45; cursor:default; pointer-events:none; }
+
+    /* 탭 영역 */
+    .result-tabs {
+      margin-top:16px;
+      border-bottom:1px solid var(--border);
+      display:flex; gap:0;
+    }
+    .rtab {
+      padding:10px 16px;
+      font-size:13px; color:#6b7280;
+      cursor:pointer; border-bottom:2px solid transparent;
+      margin-bottom:-1px; transition:all .15s; white-space:nowrap;
+    }
+    .rtab.active { color:#1a1a1a; font-weight:600; border-color:#1a1a1a; }
+    .rtab:hover:not(.active) { color:#374151; }
+
+    .tab-content { margin-top:12px; display:flex; flex-direction:column; gap:8px; }
+    .case-card {
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:14px 16px;
+      background:#fff;
+      cursor:pointer;
+      transition:all .15s;
+    }
+    .case-card:hover { border-color:#9ca3af; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+    .case-card .cc-title { font-size:13px; font-weight:600; color:#1a1a1a; margin-bottom:4px; }
+    .case-card .cc-desc { font-size:12px; color:#6b7280; }
+
+    /* 상세 케이스 카드 */
+    .detail-card {
+      background:#f8f9fa;
+      border-radius:12px;
+      padding:20px;
+      margin-top:8px;
+      font-size:13px;
+      line-height:1.7;
+      animation:fadeUp .2s ease;
+    }
+    .detail-card .dc-title { font-size:14px; font-weight:700; margin-bottom:12px; color:#1a1a1a; }
+    .detail-card .dc-section { margin-bottom:12px; }
+    .detail-card .dc-section h4 { font-size:12px; color:var(--accent); font-weight:600; margin-bottom:6px; }
+    .detail-card .dc-section ul { padding-left:16px; color:#374151; }
+    .detail-card .dc-section ul li { margin-bottom:3px; }
+
+    /* 입력 영역 */
+    .chat-input-wrap {
+      height:var(--input-h);
+      border-top:1px solid var(--border);
+      padding:10px 20px;
+      display:flex; align-items:center; gap:10px;
+      background:#fff; flex-shrink:0;
+    }
+    .chat-input {
+      flex:1;
+      border:1.5px solid #e5e7eb;
+      border-radius:28px;
+      padding:10px 18px;
+      font-size:13.5px;
+      font-family:'Noto Sans KR',sans-serif;
+      outline:none; color:#1a1a1a;
+      background:#f9fafb;
+      transition:border-color .15s;
+    }
+    .chat-input:focus { border-color:#9ca3af; background:#fff; }
+    .chat-input::placeholder { color:#b0b5be; }
+    .send-btn {
+      width:38px; height:38px; flex-shrink:0;
+      background:#374151; border-radius:50%; border:none;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:background .15s;
+    }
+    .send-btn:hover { background:#1a2a3a; }
+    .send-btn svg { width:16px; height:16px; fill:none; stroke:#fff; stroke-width:2; }
+
+    /* ── 오른쪽 패널 ────────────────────────────────── */
+    .right-panel {
+      width:var(--panel-w);
+      flex-shrink:0;
+      background:#fafafa;
+      border-left:1px solid var(--border);
+      overflow-y:auto;
+      display:flex;
+      flex-direction:column;
+    }
+    .right-panel::-webkit-scrollbar { width:4px; }
+    .right-panel::-webkit-scrollbar-thumb { background:#e5e7eb; border-radius:4px; }
+
+    .rp-header {
+      padding:18px 20px 14px;
+      border-bottom:1px solid var(--border);
+      background:#fff; flex-shrink:0;
+    }
+    .rp-header h2 { font-size:15px; font-weight:700; color:#1a1a1a; margin-bottom:3px; }
+    .rp-header p { font-size:12px; color:#9ca3af; }
+
+    .rp-empty {
+      flex:1; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      padding:32px 24px; text-align:center; color:#b0b5be;
+    }
+    .rp-empty svg { width:48px; height:48px; margin-bottom:12px; opacity:.4; }
+    .rp-empty p { font-size:13px; line-height:1.6; }
+
+    .rp-sections { padding:0 0 24px; }
+
+    .rp-section {
+      padding:16px 20px;
+      border-bottom:1px solid var(--border);
+      animation:fadeUp .3s ease;
+    }
+    .rp-section:last-child { border-bottom:none; }
+    .rp-section h3 {
+      font-size:13px; font-weight:700; color:#1a1a1a;
+      margin-bottom:10px;
+    }
+    .rp-bullets { list-style:none; display:flex; flex-direction:column; gap:7px; }
+    .rp-bullets li {
+      font-size:12.5px; color:#374151; line-height:1.6;
+      padding-left:14px; position:relative;
+    }
+    .rp-bullets li::before {
+      content:'·'; position:absolute; left:2px; color:#9ca3af; font-size:16px; line-height:1;
+    }
+
+    .rp-card {
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:11px 14px;
+      background:#fff;
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:7px; cursor:pointer; transition:all .15s;
+    }
+    .rp-card:last-child { margin-bottom:0; }
+    .rp-card:hover { border-color:#9ca3af; }
+    .rp-card .rpc-left { flex:1; min-width:0; }
+    .rp-card .rpc-title { font-size:12.5px; font-weight:600; color:#1a1a1a; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .rp-card .rpc-sub { font-size:11px; color:#9ca3af; }
+    .rp-card .rpc-icon { width:20px; height:20px; color:#d1d5db; flex-shrink:0; margin-left:8px; }
+
+    .badge {
+      display:inline-block;
+      font-size:10px; font-weight:600;
+      padding:2px 7px; border-radius:10px;
+      margin-bottom:6px;
+    }
+    .badge.success { background:#d1fae5; color:#065f46; }
+    .badge.warn { background:#fef3c7; color:#92400e; }
+
+    /* 타이핑 인디케이터 */
+    .typing-indicator {
+      display:flex; gap:4px; padding:4px 0; align-items:center;
+    }
+    .typing-dot {
+      width:7px; height:7px; background:#d1d5db;
+      border-radius:50%; animation:typingBounce 1.2s infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay:.2s; }
+    .typing-dot:nth-child(3) { animation-delay:.4s; }
+    @keyframes typingBounce {
+      0%,60%,100% { transform:translateY(0); }
+      30% { transform:translateY(-5px); }
+    }
+
+    /* 스크롤 숨기기 */
+    .chat-messages, .right-panel { scrollbar-gutter:stable; }
+
+    /* 도움말 툴팁 */
+    .help-modal {
+      position:fixed; inset:0; background:rgba(0,0,0,.3);
+      display:flex; align-items:center; justify-content:center;
+      z-index:1000; opacity:0; pointer-events:none; transition:opacity .2s;
+    }
+    .help-modal.visible { opacity:1; pointer-events:all; }
+    .help-box {
+      background:#fff; border-radius:14px; padding:28px 32px;
+      max-width:400px; width:90%;
+      box-shadow:0 8px 32px rgba(0,0,0,.12);
+    }
+    .help-box h3 { font-size:16px; font-weight:700; margin-bottom:12px; }
+    .help-box p { font-size:13.5px; line-height:1.7; color:#374151; margin-bottom:16px; }
+    .help-box .close-btn {
+      padding:8px 20px; background:#1a2a3a; color:#fff;
+      border:none; border-radius:8px; cursor:pointer;
+      font-size:13px; font-family:'Noto Sans KR',sans-serif;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── 사이드바 ─────────────────────────────────── -->
+  <nav class="sidebar">
+    <div class="sb-top">
+      <!-- 햄버거 -->
+      <div class="sb-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </div>
+      <!-- 프로필 -->
+      <div class="sb-icon active" title="프로필">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+
+      <div class="sb-label">서비스</div>
+      <!-- 채팅 -->
+      <div class="sb-icon" title="상담">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <!-- 문서 -->
+      <div class="sb-icon" title="서류">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <!-- 리스트 -->
+      <div class="sb-icon" title="목록">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      </div>
+
+      <div class="sb-divider"></div>
+      <div class="sb-label">APT</div>
+
+      <div class="sb-icon" title="단지 정보">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      </div>
+      <div class="sb-icon" title="공지사항">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </div>
+
+      <div class="sb-divider"></div>
+      <div class="sb-label">관리</div>
+
+      <div class="sb-icon" title="설정">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+    </div>
+
+    <div class="sb-bot">
+      <!-- 로그아웃 -->
+      <div class="sb-icon" title="로그아웃">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── 채팅 영역 ─────────────────────────────────── -->
+  <div class="chat-wrap">
+    <div class="chat-header">
+      <div class="back-btn" onclick="goBack()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        이전
+      </div>
+      <div class="help-btn" onclick="showHelp()">?</div>
+    </div>
+
+    <div class="chat-messages" id="messages"></div>
+
+    <div class="chat-input-wrap">
+      <input type="text" class="chat-input" id="chatInput"
+        placeholder="다양한 단지 사례를 검색해보세요. 키피라이팅 대충" 
+        onkeydown="if(event.key==='Enter') sendFreeText()">
+      <button class="send-btn" onclick="sendFreeText()">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── 오른쪽 패널 ────────────────────────────────── -->
+  <aside class="right-panel" id="rightPanel">
+    <div class="rp-header">
+      <h2 id="rpTitle">AI 상담 요약</h2>
+      <p id="rpSub">상담을 시작하면 요약 내용이 표시됩니다</p>
+    </div>
+    <div id="rpBody">
+      <div class="rp-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>
+        </svg>
+        <p>채팅에서 상담을 시작하면<br>분석 결과와 관련 자료가<br>여기에 표시됩니다.</p>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- 도움말 모달 -->
+<div class="help-modal" id="helpModal" onclick="closeHelp(event)">
+  <div class="help-box">
+    <h3>아파트집사 AI 상담 안내</h3>
+    <p>
+      아파트집사는 <strong>공동주택 입주민</strong>을 위한 AI 법률 상담 서비스입니다.<br><br>
+      입주자대표회의 운영, 관리비 분쟁, 임원 해임, 층간소음 대응 등<br>
+      공동주택 생활에서 발생하는 법률 문제를 도와드립니다.<br><br>
+      <strong>주의:</strong> 본 서비스는 일반적인 정보 제공 목적이며,
+      실제 법률 자문은 공인된 변호사나 전문가에게 의뢰하시기 바랍니다.
+    </p>
+    <button class="close-btn" onclick="closeHelp()">확인</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   상태 관리
+============================================================ */
+let step = 0;
+let selectedReason = null;
+let selectedUnits = null;
+let activeTab = 'cases';
+let detailOpen = false;
+
+const msgs = document.getElementById('messages');
+const rpBody = document.getElementById('rpBody');
+
+/* ============================================================
+   초기화 — 페이지 로드 시 첫 AI 메시지
+============================================================ */
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    addAiMsg(
+      `안녕하세요! 입주자대표회의 법률 상담 도우미입니다.<br>
+       무엇을 도와드릴까요?`,
+      [
+        { label: '회장·임원 해임', action: () => selectTopic('해임') },
+        { label: '관리비 분쟁', action: () => selectTopic('관리비') },
+        { label: '층간소음 대응', action: () => selectTopic('소음') },
+        { label: '관리업체 교체', action: () => selectTopic('업체교체') },
+        { label: '직접 입력', action: () => focusInput() },
+      ]
+    );
+    step = 1;
+  }, 300);
+});
+
+/* ============================================================
+   주제 선택 (Step 1)
+============================================================ */
+function selectTopic(topic) {
+  if (step !== 1) return;
+  step = 2;
+  disableAllButtons();
+
+  if (topic === '해임') {
+    addUserMsg('입주자대표회의의 회장을 해임하고 싶은데, 어떻게 해야 하나요?');
+    showTyping(() => {
+      addAiMsg(
+        `해임을 도와드리겠습니다. 먼저 상황 파악을 위해 몇 가지 여쭤보겠습니다.<br>
+         <strong>해임 사유가 어떻게 되시나요?</strong>`,
+        [
+          { label: '회의 미소집', action: () => selectReason('회의 미소집') },
+          { label: '회계 비공개', action: () => selectReason('회계 비공개') },
+          { label: '독단적 운영', action: () => selectReason('독단적 운영') },
+          { label: '직접 입력', action: () => focusInput() },
+        ]
+      );
+    });
+  } else {
+    addUserMsg(topicLabel(topic) + '에 대해 알고 싶습니다.');
+    showTyping(() => {
+      addAiMsg(
+        `<strong>${topicLabel(topic)}</strong> 관련 상담을 도와드리겠습니다.<br>
+         현재 이 기능은 데모 버전에서 <strong>회장·임원 해임</strong> 시나리오만 제공됩니다.<br>
+         해임 관련 상담을 시작하시겠어요?`,
+        [
+          { label: '회장·임원 해임 상담 시작', action: () => { step=1; selectTopic('해임'); } },
+        ]
+      );
+      step = 1;
+    });
+  }
+}
+
+function topicLabel(t) {
+  return {해임:'회장·임원 해임',관리비:'관리비 분쟁',소음:'층간소음 대응',업체교체:'관리업체 교체'}[t] || t;
+}
+
+/* ============================================================
+   해임 사유 선택 (Step 2)
+============================================================ */
+function selectReason(reason) {
+  if (step !== 2) return;
+  step = 3;
+  selectedReason = reason;
+  disableAllButtons();
+
+  const msgMap = {
+    '회의 미소집': '회의를 3번 이상 안 열었어요',
+    '회계 비공개': '관리비 내역을 공개하지 않고 있어요',
+    '독단적 운영': '입대의 동의 없이 혼자 결정하고 집행했어요',
+  };
+  addUserMsg(msgMap[reason] || reason);
+
+  const descMap = {
+    '회의 미소집': '회의 미소집 3회 이상이면 해임 사유로 충분합니다. 관련 법령과 유사사례를 바탕으로 진행 방안을 정리해드릴게요.',
+    '회계 비공개': '관리비 내역 비공개는 공동주택관리법 위반 사유입니다. 충분한 해임 사유가 됩니다.',
+    '독단적 운영': '입대의 의결 없는 독단적 운영은 절차 위반으로 해임 사유에 해당합니다.',
+  };
+
+  showTyping(() => {
+    addAiMsg(
+      `${descMap[reason]}<br><br>
+       <strong>현재 단지 세대 수가 어느 정도 되나요?</strong>`,
+      [
+        { label: '500세대 이하', action: () => selectUnits('500이하') },
+        { label: '500~1,000세대', action: () => selectUnits('500~1000') },
+        { label: '1,000세대 이상', action: () => selectUnits('1000이상') },
+      ]
+    );
+  });
+}
+
+/* ============================================================
+   세대수 선택 (Step 3) → 결과 표시
+============================================================ */
+function selectUnits(units) {
+  if (step !== 3) return;
+  step = 4;
+  selectedUnits = units;
+  disableAllButtons();
+
+  const labelMap = { '500이하':'500세대 이하입니다', '500~1000':'500~1,000세대입니다', '1000이상':'1,000세대 이상이에요' };
+  addUserMsg(labelMap[units]);
+
+  const minVotes = { '500이하':'전체 세대의 1/4(25%) 이상', '500~1000':'전체 세대의 1/3(약 33%) 이상', '1000이상':'전체 세대의 1/3(약 33%) 이상, 최소 400세대' };
+
+  showTyping(() => {
+    addAiMsg(
+      `<strong>${unitLabel(units)}</strong>이면 서면 동의 요건은 <strong>${minVotes[units]}</strong>입니다.<br><br>
+       아래 탭에서 유사 사례, 서류 서식, 관련 법령을 확인할 수 있습니다.<br>
+       다른 단지들의 사례를 바탕으로 제안드리면, 귀 단지와 규모가 유사한 <strong>○○아파트(1,200세대, 서울 강남)</strong> 사례를 참고하시는 게 좋겠습니다.<br>
+       특히 <em>안내문 3회 발송 전략</em>이 효과적이었습니다.`
+    );
+    setTimeout(() => {
+      appendTabs();
+      updateRightPanel();
+    }, 100);
+  });
+}
+
+function unitLabel(u) {
+  return { '500이하':'500세대 이하', '500~1000':'500~1,000세대', '1000이상':'1,000세대 이상' }[u];
+}
+
+/* ============================================================
+   탭 + 케이스 카드 추가
+============================================================ */
+function appendTabs() {
+  const container = document.createElement('div');
+  container.className = 'msg ai';
+  container.style.marginTop = '4px';
+
+  const tabBar = document.createElement('div');
+  tabBar.className = 'result-tabs';
+  tabBar.id = 'resultTabs';
+
+  const tabs = [
+    { id:'cases', label:'유사 사례' },
+    { id:'docs',  label:'문서 서식' },
+    { id:'laws',  label:'관련 법령' },
+  ];
+  tabs.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'rtab' + (t.id === activeTab ? ' active' : '');
+    el.textContent = t.label;
+    el.onclick = () => switchTab(t.id);
+    el.dataset.tabId = t.id;
+    tabBar.appendChild(el);
+  });
+
+  const content = document.createElement('div');
+  content.className = 'tab-content';
+  content.id = 'tabContent';
+
+  container.appendChild(tabBar);
+  container.appendChild(content);
+  msgs.appendChild(container);
+
+  renderTabContent('cases');
+  scrollBottom();
+}
+
+function switchTab(id) {
+  activeTab = id;
+  document.querySelectorAll('.rtab').forEach(el => {
+    el.classList.toggle('active', el.dataset.tabId === id);
+  });
+  renderTabContent(id);
+}
+
+function renderTabContent(id) {
+  const content = document.getElementById('tabContent');
+  if (!content) return;
+  content.innerHTML = '';
+  detailOpen = false;
+
+  if (id === 'cases') {
+    const cases = [
+      { title:'○○아파트 (1,200세대, 서울 강남)', desc:'안내문 반복 발송으로 해임 완료', badge:'success', badgeText:'성공' },
+      { title:'○○아파트 (1,500세대, 인천 부평)', desc:'안내문 반복 발송으로 해임 완료', badge:'success', badgeText:'성공' },
+      { title:'○○아파트 (800세대, 경기 부천)', desc:'다른 안건 동시 진행으로 절차 하자 발생', badge:'warn', badgeText:'실패' },
+    ];
+    cases.forEach((c, i) => {
+      const card = document.createElement('div');
+      card.className = 'case-card';
+      card.innerHTML = `
+        <span class="badge ${c.badge}">${c.badgeText}</span>
+        <div class="cc-title">${c.title}</div>
+        <div class="cc-desc">${c.desc}</div>
+      `;
+      card.onclick = () => toggleDetail(card, i, content);
+      content.appendChild(card);
+    });
+    // 상세 링크
+    const link = document.createElement('div');
+    link.style.cssText = 'font-size:12px;color:#6b7280;margin-top:4px;cursor:pointer;';
+    link.innerHTML = `<span style="color:#5b6af4;text-decoration:underline;" onclick="loadCaseDetail(event)">🔍 [다른 단지 사례] ○○아파트 해임 사례 상세 보기</span>`;
+    content.appendChild(link);
+
+  } else if (id === 'docs') {
+    const docs = [
+      { title:'해임 동의서 초안', desc:'서면 동의 수집용 양식' },
+      { title:'투표 요청서', desc:'입대의 임시회의 소집 요청서' },
+      { title:'투표 안내문', desc:'세대별 배포용 공고문 (3회 발송용)' },
+      { title:'해임 사유서', desc:'해임 사유 상세 기술 서면' },
+    ];
+    docs.forEach(d => {
+      const card = document.createElement('div');
+      card.className = 'case-card';
+      card.style.display = 'flex';
+      card.style.alignItems = 'center';
+      card.style.justifyContent = 'space-between';
+      card.innerHTML = `
+        <div>
+          <div class="cc-title">${d.title}</div>
+          <div class="cc-desc">${d.desc}</div>
+        </div>
+        <div style="color:#9ca3af;font-size:11px;white-space:nowrap;margin-left:12px;">
+          <span onclick="downloadDoc('${d.title}')" style="cursor:pointer;padding:4px 8px;border:1px solid #e5e7eb;border-radius:6px;">↓ 다운로드</span>
+        </div>
+      `;
+      content.appendChild(card);
+    });
+
+  } else if (id === 'laws') {
+    const laws = [
+      { title:'공동주택관리법 시행령 제12조①', desc:'임원 해임 서면 동의 요건' },
+      { title:'공동주택관리법 시행령 제12조②', desc:'서면 동의 방법 및 절차' },
+      { title:'공동주택관리법 시행령 제12조③', desc:'의결 정족수 및 무효 처리 기준' },
+      { title:'공동주택관리법 제14조', desc:'입주자대표회의 구성원 자격 및 해임' },
+    ];
+    laws.forEach(l => {
+      const card = document.createElement('div');
+      card.className = 'case-card';
+      card.innerHTML = `
+        <div class="cc-title">${l.title}</div>
+        <div class="cc-desc">${l.desc}</div>
+      `;
+      card.onclick = () => showLawDetail(l.title);
+      content.appendChild(card);
+    });
+  }
+  scrollBottom();
+}
+
+const detailData = [
+  {
+    title:'자문사례 요약 #2024-031',
+    sections: [
+      { heading:'단지 정보', items:['단지: ○○아파트 (서울 강남구, 1,200세대)', '기간: 2024.03 ~ 2024.06 (약 3개월)', '결과: 해임 완료'] },
+      { heading:'진행 경과', items:['서면 동의 확보 → 동별 대표자 직접 전달, 2주', '1차 투표 → 참여율 42%로 부결', '안내문 3회 발송 → 게시판 + 우편함 + 앱 동시', '재투표 → 참여율 68%, 찬성 71% → 해임 확정'] },
+      { heading:'핵심 포인트', items:['안내문 반복 발송이 참여율을 26% 끌어올림', '해임 사유를 날짜 + 횟수로 구체적 명시', '다른 안건과 동시 진행하지 않음 (단독 진행)'] },
+    ]
+  },
+  {
+    title:'자문사례 요약 #2024-018',
+    sections: [
+      { heading:'단지 정보', items:['단지: ○○아파트 (인천 부평구, 1,500세대)', '기간: 2024.01 ~ 2024.04 (약 3.5개월)', '결과: 해임 완료'] },
+      { heading:'진행 경과', items:['서면 동의 선(先) 확보 후 투표 공고', '1차 안내문 발송 → 우편함 + 문자', '2차 안내문 → 앱 푸시 + 공동현관 게시', '3차 안내문 → 직접 초인종 방문', '투표 참여율 78%, 찬성 65%'] },
+      { heading:'핵심 포인트', items:['3단계 안내 전략(우편→앱→방문)으로 참여율 극대화', '1,500세대 기준 500세대 동의 필요 → 523세대 확보', '해임 사유서에 법조문 명시'] },
+    ]
+  },
+  {
+    title:'자문사례 요약 #2023-055 (실패 사례)',
+    sections: [
+      { heading:'단지 정보', items:['단지: ○○아파트 (경기 부천, 800세대)', '기간: 2023.09 ~ 2023.11', '결과: 절차 하자로 무효 처리'] },
+      { heading:'진행 경과', items:['해임 투표와 관리업체 변경 안건을 동시 상정', '법원: 복수 안건 동시 처리는 절차 위반 판시', '재투표 청구 → 비용 및 시간 손실'] },
+      { heading:'교훈', items:['단일 안건 원칙 필수', '안건 병행 시 분리 공고·분리 투표 필요', '사전에 법무 검토 받을 것'] },
+    ]
+  }
+];
+
+function toggleDetail(card, idx, container) {
+  const existing = container.querySelector('.detail-card');
+  if (existing && existing.dataset.idx === String(idx)) {
+    existing.remove();
+    detailOpen = false;
+    return;
+  }
+  if (existing) existing.remove();
+  const data = detailData[idx];
+  const div = document.createElement('div');
+  div.className = 'detail-card';
+  div.dataset.idx = String(idx);
+  div.innerHTML = `<div class="dc-title">${data.title}</div>` +
+    data.sections.map(s => `
+      <div class="dc-section">
+        <h4>■ ${s.heading}</h4>
+        <ul>${s.items.map(i => `<li>${i}</li>`).join('')}</ul>
+      </div>
+    `).join('');
+  card.parentNode.insertBefore(div, card.nextSibling);
+  detailOpen = true;
+  scrollBottom();
+}
+
+function loadCaseDetail(e) {
+  e.stopPropagation();
+  const content = document.getElementById('tabContent');
+  if (!content) return;
+  const existing = content.querySelector('.detail-card[data-idx="0"]');
+  if (!existing) {
+    const cards = content.querySelectorAll('.case-card');
+    if (cards[0]) toggleDetail(cards[0], 0, content);
+  }
+  scrollBottom();
+}
+
+function downloadDoc(title) {
+  alert(`"${title}" 다운로드 기능은 실제 서비스에서 제공됩니다.\n(데모에서는 미지원)`);
+}
+
+function showLawDetail(title) {
+  const lawTexts = {
+    '공동주택관리법 시행령 제12조①': '입주자등은 동별 대표자를 선출한 경우 임기 중에 해임할 수 있다. 해임은 해당 선거구 입주자등의 과반수 서면 동의로 한다.',
+    '공동주택관리법 시행령 제12조②': '서면 동의는 개인별로 받아야 하며, 동의서에는 해임 사유를 구체적으로 기재하여야 한다.',
+    '공동주택관리법 시행령 제12조③': '서면 동의를 받은 날부터 10일 이내에 투표를 실시하며, 해당 선거구 입주자등의 과반수 찬성으로 해임한다.',
+    '공동주택관리법 제14조': '동별 대표자는 500세대 이상의 공동주택의 경우 임기 중 해임할 수 있으며, 이 경우 해당 선거구의 입주자등 10분의 1 이상의 요청이 있어야 한다.',
+  };
+  const text = lawTexts[title] || '조문 내용을 불러오는 중입니다.';
+  alert(`[${title}]\n\n${text}`);
+}
+
+/* ============================================================
+   오른쪽 패널 업데이트
+============================================================ */
+function updateRightPanel() {
+  document.getElementById('rpTitle').textContent = '회장 해임 건';
+  document.getElementById('rpSub').textContent = '상담 내역 요약 및 관련 자료';
+
+  rpBody.innerHTML = `
+    <div class="rp-sections">
+
+      <div class="rp-section">
+        <h3>비교 분석 결과</h3>
+        <ul class="rp-bullets">
+          <li>총 32개의 유사 사례를 분석했습니다.</li>
+          <li>해임에 성공한 27개의 공통점은 안내문 3회 이상 발송과 해임 사유의 구체적 명시입니다.</li>
+          <li>실패한 5건은 다른 안건과 동시 진행으로 인한 절차 하자가 원인이었습니다.</li>
+        </ul>
+      </div>
+
+      <div class="rp-section">
+        <h3>우리 단지 적용</h3>
+        <ul class="rp-bullets">
+          <li>세대수(1,200)와 사유(회의 미소집)가 ○○아파트와 유사하므로 같은 전략이 유효합니다.</li>
+          <li>안내문 3회 발송 시 참여율 60% 이상 달성 가능성이 높습니다.</li>
+          <li>다른 안건과의 동시 진행은 피해야 합니다.</li>
+        </ul>
+      </div>
+
+      <div class="rp-section">
+        <h3>주의사항</h3>
+        <ul class="rp-bullets">
+          <li>서면 동의 없이 투표만으로 진행하면 해임 절차가 무효 처리될 수 있습니다.</li>
+          <li>관리방식 변경 등 다른 안건과 동시에 진행하지 마세요. 절차 하자 위험이 큽니다.</li>
+          <li>투표 참여율 과반 미달 시 재투표가 필요합니다. 안내문 반복 발송으로 참여율을 관리하세요.</li>
+          <li>동의서는 입주자(소유자) 본인만 서명 가능합니다. 세입자 서명은 무효입니다.</li>
+        </ul>
+      </div>
+
+      <div class="rp-section">
+        <h3>유사 사례</h3>
+        <div class="rp-card" onclick="switchTabAndFocus('cases',0)">
+          <div class="rpc-left">
+            <div class="rpc-title">○○아파트 (1,200세대, 서울 강남)</div>
+            <div class="rpc-sub">안내문 반복 발송으로 해임 완료 ✓</div>
+          </div>
+          <svg class="rpc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="rp-card" onclick="switchTabAndFocus('cases',1)">
+          <div class="rpc-left">
+            <div class="rpc-title">○○아파트 (1,500세대, 인천 부평)</div>
+            <div class="rpc-sub">안내문 반복 발송으로 해임 완료 ✓</div>
+          </div>
+          <svg class="rpc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="rp-card" onclick="switchTabAndFocus('cases',2)">
+          <div class="rpc-left">
+            <div class="rpc-title">○○아파트 (800세대, 경기 부천)</div>
+            <div class="rpc-sub">동시 안건 진행으로 절차 하자 ✗</div>
+          </div>
+          <svg class="rpc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <div class="rp-section">
+        <h3>생성된 문서</h3>
+        <div class="rp-card" onclick="downloadDoc('해임 동의서 초안')">
+          <div class="rpc-left">
+            <div class="rpc-title">해임 동의서 초안</div>
+            <div class="rpc-sub">서면 동의 수집용</div>
+          </div>
+          <svg class="rpc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </div>
+        <div class="rp-card" onclick="downloadDoc('투표 요청서')">
+          <div class="rpc-left">
+            <div class="rpc-title">투표 요청서</div>
+            <div class="rpc-sub">임시회의 소집 요청서</div>
+          </div>
+          <svg class="rpc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </div>
+        <div class="rp-card" onclick="downloadDoc('투표 안내문')">
+          <div class="rpc-left">
+            <div class="rpc-title">투표 안내문</div>
+            <div class="rpc-sub">세대 배포용 공고문</div>
+          </div>
+          <svg class="rpc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </div>
+      </div>
+
+      <div class="rp-section">
+        <h3>관련 법령</h3>
+        <div class="rp-card" onclick="showLawDetail('공동주택관리법 시행령 제12조①')">
+          <div class="rpc-left">
+            <div class="rpc-title">공동주택관리법 시행령 제12조①</div>
+            <div class="rpc-sub">해임 서면동의 요건</div>
+          </div>
+          <svg class="rpc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="rp-card" onclick="showLawDetail('공동주택관리법 시행령 제12조②')">
+          <div class="rpc-left">
+            <div class="rpc-title">공동주택관리법 시행령 제12조②</div>
+            <div class="rpc-sub">서면동의 방법 및 절차</div>
+          </div>
+          <svg class="rpc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="rp-card" onclick="showLawDetail('공동주택관리법 시행령 제12조③')">
+          <div class="rpc-left">
+            <div class="rpc-title">공동주택관리법 시행령 제12조③</div>
+            <div class="rpc-sub">의결 정족수 및 무효 처리</div>
+          </div>
+          <svg class="rpc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function switchTabAndFocus(tabId, caseIdx) {
+  // 탭 전환 후 해당 케이스 상세 열기
+  switchTab(tabId);
+  setTimeout(() => {
+    const content = document.getElementById('tabContent');
+    if (!content) return;
+    const cards = content.querySelectorAll('.case-card');
+    if (cards[caseIdx]) {
+      toggleDetail(cards[caseIdx], caseIdx, content);
+      cards[caseIdx].scrollIntoView({ behavior:'smooth', block:'nearest' });
+    }
+  }, 100);
+}
+
+/* ============================================================
+   자유 텍스트 입력
+============================================================ */
+function sendFreeText() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addUserMsg(text);
+  showTyping(() => {
+    addAiMsg(
+      `감사합니다. "<strong>${text}</strong>"에 대해 답변드리겠습니다.<br><br>
+       이 기능은 현재 데모 버전으로, 미리 설정된 시나리오(회장 해임)만 완전히 지원됩니다.<br>
+       실제 서비스에서는 다양한 입주자대표회의 분쟁 유형에 대해 답변드릴 수 있습니다.`
+    );
+  });
+}
+
+function focusInput() {
+  document.getElementById('chatInput').focus();
+}
+
+/* ============================================================
+   유틸 함수
+============================================================ */
+function addUserMsg(text) {
+  const div = document.createElement('div');
+  div.className = 'msg user';
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.innerHTML = text;
+  div.appendChild(bubble);
+  msgs.appendChild(div);
+  scrollBottom();
+}
+
+function addAiMsg(html, buttons) {
+  const div = document.createElement('div');
+  div.className = 'msg ai';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  const p = document.createElement('p');
+  p.innerHTML = html;
+  bubble.appendChild(p);
+  div.appendChild(bubble);
+
+  if (buttons && buttons.length) {
+    const btnWrap = document.createElement('div');
+    btnWrap.className = 'quick-btns';
+    btnWrap.dataset.btnGroup = Date.now();
+    buttons.forEach(b => {
+      const btn = document.createElement('button');
+      btn.className = 'qbtn';
+      btn.textContent = b.label;
+      btn.onclick = () => {
+        btn.classList.add('selected');
+        b.action();
+      };
+      btnWrap.appendChild(btn);
+    });
+    div.appendChild(btnWrap);
+  }
+
+  msgs.appendChild(div);
+  scrollBottom();
+}
+
+function showTyping(callback) {
+  const div = document.createElement('div');
+  div.className = 'msg ai';
+  div.id = 'typingIndicator';
+  div.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  msgs.appendChild(div);
+  scrollBottom();
+  setTimeout(() => {
+    const el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+    callback();
+  }, 900 + Math.random() * 400);
+}
+
+function disableAllButtons() {
+  document.querySelectorAll('.qbtn').forEach(b => b.disabled = true);
+}
+
+function scrollBottom() {
+  setTimeout(() => { msgs.scrollTop = msgs.scrollHeight; }, 50);
+}
+
+function goBack() {
+  if (confirm('상담을 종료하고 이전 화면으로 돌아가시겠어요?')) {
+    window.location.reload();
+  }
+}
+
+function showHelp() {
+  document.getElementById('helpModal').classList.add('visible');
+}
+function closeHelp(e) {
+  if (!e || e.target === document.getElementById('helpModal')) {
+    document.getElementById('helpModal').classList.remove('visible');
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아파트집사 AI 상담 — 실사용 보완점 보고서</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1a2a3a;
+      --accent: #5b6af4;
+      --green: #059669;
+      --orange: #d97706;
+      --red: #dc2626;
+      --border: #e5e7eb;
+      --bg: #f7f8fa;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:#1a1a1a; }
+
+    .page { max-width:860px; margin:0 auto; padding:40px 24px 80px; }
+
+    /* 커버 */
+    .cover {
+      background:var(--primary);
+      color:#fff;
+      border-radius:16px;
+      padding:40px 48px;
+      margin-bottom:40px;
+    }
+    .cover .tag {
+      display:inline-block;
+      background:rgba(255,255,255,.15);
+      font-size:11px; font-weight:600; letter-spacing:1px;
+      padding:4px 12px; border-radius:20px; margin-bottom:16px;
+      text-transform:uppercase;
+    }
+    .cover h1 { font-size:26px; font-weight:700; line-height:1.3; margin-bottom:10px; }
+    .cover p { font-size:13.5px; opacity:.75; line-height:1.6; }
+    .cover .meta { margin-top:24px; display:flex; gap:32px; }
+    .cover .meta-item { font-size:12px; opacity:.65; }
+    .cover .meta-item strong { display:block; font-size:14px; opacity:1; font-weight:600; margin-bottom:2px; }
+
+    /* 섹션 */
+    .sec { margin-bottom:36px; }
+    .sec-header {
+      display:flex; align-items:center; gap:12px;
+      margin-bottom:20px;
+    }
+    .sec-num {
+      width:28px; height:28px; background:var(--primary);
+      color:#fff; border-radius:6px; font-size:12px; font-weight:700;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .sec-title { font-size:17px; font-weight:700; color:var(--primary); }
+
+    /* 카드 그리드 */
+    .card-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    @media (max-width:600px) { .card-grid { grid-template-columns:1fr; } }
+
+    .card {
+      background:#fff; border:1px solid var(--border);
+      border-radius:12px; padding:20px 22px;
+    }
+    .card h4 {
+      font-size:13px; font-weight:700; margin-bottom:10px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .card ul { list-style:none; display:flex; flex-direction:column; gap:6px; }
+    .card ul li {
+      font-size:13px; color:#374151; padding-left:14px; position:relative; line-height:1.6;
+    }
+    .card ul li::before { content:'·'; position:absolute; left:2px; color:#9ca3af; font-size:16px; }
+
+    /* 우선순위 테이블 */
+    table { width:100%; border-collapse:collapse; background:#fff; border-radius:12px; overflow:hidden; border:1px solid var(--border); }
+    thead tr { background:var(--primary); color:#fff; }
+    thead th { padding:12px 16px; text-align:left; font-size:12.5px; font-weight:600; }
+    tbody tr { border-bottom:1px solid var(--border); }
+    tbody tr:last-child { border-bottom:none; }
+    tbody td { padding:12px 16px; font-size:13px; color:#374151; vertical-align:top; line-height:1.6; }
+    tbody tr:nth-child(even) { background:#f9fafb; }
+
+    /* 배지 */
+    .badge {
+      display:inline-block; font-size:10.5px; font-weight:600;
+      padding:2px 8px; border-radius:10px; white-space:nowrap;
+    }
+    .badge.p1 { background:#fee2e2; color:#991b1b; }
+    .badge.p2 { background:#fef3c7; color:#92400e; }
+    .badge.p3 { background:#d1fae5; color:#065f46; }
+    .badge.done { background:#ede9fe; color:#4c1d95; }
+    .badge.effort-sm { background:#e0f2fe; color:#0369a1; }
+    .badge.effort-md { background:#fef9c3; color:#713f12; }
+    .badge.effort-lg { background:#fee2e2; color:#991b1b; }
+
+    /* 인사이트 블록 */
+    .insight {
+      border-left:4px solid var(--accent);
+      background:#f0f1ff;
+      border-radius:0 10px 10px 0;
+      padding:16px 20px;
+      margin:16px 0;
+      font-size:13.5px;
+      line-height:1.7;
+      color:#1a1a1a;
+    }
+
+    /* 타임라인 */
+    .timeline { display:flex; flex-direction:column; gap:0; }
+    .tl-item {
+      display:flex; gap:0; position:relative;
+    }
+    .tl-left {
+      width:100px; flex-shrink:0; padding:16px 20px 16px 0;
+      text-align:right;
+    }
+    .tl-phase {
+      font-size:11px; font-weight:700; color:var(--accent);
+      background:var(--accent);
+      color:#fff;
+      padding:3px 10px; border-radius:12px;
+      white-space:nowrap;
+    }
+    .tl-line {
+      width:2px; background:#e5e7eb; flex-shrink:0; position:relative;
+    }
+    .tl-dot {
+      width:10px; height:10px; background:var(--accent);
+      border-radius:50%; position:absolute; top:20px; left:-4px;
+    }
+    .tl-content {
+      flex:1; padding:12px 0 12px 20px; border-bottom:1px solid #f0f0f0;
+    }
+    .tl-item:last-child .tl-content { border-bottom:none; }
+    .tl-content h4 { font-size:13.5px; font-weight:700; margin-bottom:6px; color:#1a2a3a; }
+    .tl-content ul { list-style:disc; padding-left:16px; font-size:12.5px; color:#374151; line-height:1.7; }
+
+    /* 결론 박스 */
+    .conclusion {
+      background:var(--primary); color:#fff;
+      border-radius:14px; padding:28px 32px;
+    }
+    .conclusion h3 { font-size:16px; font-weight:700; margin-bottom:12px; }
+    .conclusion p { font-size:13.5px; line-height:1.8; opacity:.9; }
+    .conclusion .cta {
+      margin-top:20px; display:inline-block;
+      background:rgba(255,255,255,.15); padding:10px 24px;
+      border-radius:8px; font-size:13px; font-weight:600;
+      text-decoration:none; color:#fff;
+    }
+    .conclusion .cta:hover { background:rgba(255,255,255,.25); }
+
+    hr { border:none; border-top:1px solid var(--border); margin:36px 0; }
+    .nav-link { font-size:13px; color:var(--accent); text-decoration:none; font-weight:500; }
+    .nav-link:hover { text-decoration:underline; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- 커버 -->
+  <div class="cover">
+    <div class="tag">Internal Report · v1.0</div>
+    <h1>아파트집사 AI 상담<br>실사용 보완점 보고서</h1>
+    <p>데모 프로토타입 기반 분석 — 실제 서비스 전환 시 필요한 기술·운영·법적 보완 사항을 정리합니다.</p>
+    <div class="meta">
+      <div class="meta-item"><strong>작성일</strong>2026-03-12</div>
+      <div class="meta-item"><strong>버전</strong>Demo v1.0</div>
+      <div class="meta-item"><strong>작성자</strong>AI Consilium</div>
+      <div class="meta-item"><strong>대상</strong>두꺼비세상 AX팀 / 개발팀</div>
+    </div>
+  </div>
+
+  <p style="margin-bottom:16px;font-size:13px;color:#6b7280;">
+    ← <a class="nav-link" href="index.html">데모 페이지로 돌아가기</a>
+  </p>
+
+  <!-- 1. 현재 데모 구현 범위 -->
+  <div class="sec">
+    <div class="sec-header">
+      <div class="sec-num">01</div>
+      <div class="sec-title">현재 데모 구현 범위 (완료)</div>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <h4>✅ 구현된 기능</h4>
+        <ul>
+          <li>3-컬럼 반응형 레이아웃 (사이드바·채팅·패널)</li>
+          <li>스크립트 기반 대화 시나리오 (해임 플로우)</li>
+          <li>빠른 답변 버튼 (칩 선택 방식)</li>
+          <li>타이핑 인디케이터 애니메이션</li>
+          <li>유사 사례 / 문서 서식 / 관련 법령 탭</li>
+          <li>케이스 상세 카드 토글</li>
+          <li>오른쪽 패널 컨텍스트 업데이트</li>
+          <li>자유 텍스트 입력 처리</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>❌ 미구현 (데모 한계)</h4>
+        <ul>
+          <li>실제 AI/LLM 연동 없음 (스크립트 응답)</li>
+          <li>실제 판례·사례 DB 없음 (가상 데이터)</li>
+          <li>문서 생성·다운로드 미작동</li>
+          <li>사용자 인증·단지 정보 연동 없음</li>
+          <li>해임 외 다른 시나리오 미완성</li>
+          <li>대화 내역 저장·불러오기 없음</li>
+          <li>모바일 최적화 미흡</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 핵심 보완 사항 -->
+  <div class="sec">
+    <div class="sec-header">
+      <div class="sec-num">02</div>
+      <div class="sec-title">핵심 보완 사항 (우선순위별)</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>우선순위</th>
+          <th>항목</th>
+          <th>내용</th>
+          <th>예상 공수</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge p1">P1 필수</span></td>
+          <td><strong>AI 엔진 연동</strong></td>
+          <td>Claude API 또는 GPT-4o 연동. 공동주택관리법 특화 시스템 프롬프트 설계. RAG로 실제 판례 DB 조회.</td>
+          <td><span class="badge effort-lg">6~8주</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge p1">P1 필수</span></td>
+          <td><strong>판례·사례 데이터베이스</strong></td>
+          <td>실제 입대의 분쟁 판례 200건+ 수집·정제·벡터 임베딩. Supabase pgvector 또는 Pinecone 사용.</td>
+          <td><span class="badge effort-lg">4~6주</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge p1">P1 필수</span></td>
+          <td><strong>법적 면책 조항</strong></td>
+          <td>"본 서비스는 법률 정보 제공이며 법률 자문이 아닙니다" 등 고지 의무. 이용약관·개인정보처리방침 필수.</td>
+          <td><span class="badge effort-sm">1주</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge p2">P2 중요</span></td>
+          <td><strong>문서 자동 생성</strong></td>
+          <td>대화 결과 기반으로 해임 동의서·안내문 자동 완성. DOCX/PDF 출력. 단지명·세대수 자동 삽입.</td>
+          <td><span class="badge effort-md">3~4주</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge p2">P2 중요</span></td>
+          <td><strong>사용자 인증·단지 연동</strong></td>
+          <td>아파트너 기존 인증 시스템 연동. 단지 세대수·위치 자동 불러오기. 대화 내역 저장·불러오기.</td>
+          <td><span class="badge effort-md">3~4주</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge p2">P2 중요</span></td>
+          <td><strong>시나리오 확장</strong></td>
+          <td>현재 '해임' 단일 시나리오 → 관리비 분쟁, 층간소음, 업체 교체, 회의 소집 불응 등 10개+ 시나리오 추가.</td>
+          <td><span class="badge effort-md">4~6주</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge p3">P3 권장</span></td>
+          <td><strong>전문가 검토 연결</strong></td>
+          <td>AI 한계 상황에서 변호사·전문가 상담 연결 버튼. 황해 법무법인 전화·카카오 연결 CTA.</td>
+          <td><span class="badge effort-sm">1~2주</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge p3">P3 권장</span></td>
+          <td><strong>모바일 최적화</strong></td>
+          <td>3컬럼 → 단일 컬럼 전환. 우측 패널 모달/드로어 방식으로 변환. 입력 키보드 UX 개선.</td>
+          <td><span class="badge effort-sm">2주</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge p3">P3 권장</span></td>
+          <td><strong>대화 분석·개선 루프</strong></td>
+          <td>사용자 질문 로그 수집(익명), 자주 묻는 질문 패턴 분석, 프롬프트 튜닝 주기적 업데이트.</td>
+          <td><span class="badge effort-md">지속 운영</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 3. AI 엔진 설계 권장안 -->
+  <div class="sec">
+    <div class="sec-header">
+      <div class="sec-num">03</div>
+      <div class="sec-title">AI 엔진 설계 권장안</div>
+    </div>
+
+    <div class="insight">
+      💡 헬미닥(HelpMeDoc) 협력 사례처럼, 핵심은 <strong>도메인 특화 시스템 프롬프트 + 검증된 사례 RAG</strong>입니다.
+      Claude API 사용 시 공동주택관리법 전문 지식을 캐시 가능한 시스템 프롬프트로 구성하면 비용을 최대 90% 절감할 수 있습니다.
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <h4>🧠 추천 AI 스택</h4>
+        <ul>
+          <li><strong>기본 모델:</strong> Claude Sonnet 4.5 (응답 품질·속도·비용 균형)</li>
+          <li><strong>고난도 법률 해석:</strong> Claude Opus 4 (명확한 법조문 해석 필요 시)</li>
+          <li><strong>빠른 분류/요약:</strong> Claude Haiku 4 (의도 분류, 요약 처리)</li>
+          <li><strong>벡터 DB:</strong> Supabase pgvector (아파트너 기존 인프라 활용 가능)</li>
+          <li><strong>임베딩:</strong> text-embedding-3-small 또는 Claude embedding</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>📋 시스템 프롬프트 구조</h4>
+        <ul>
+          <li>역할 정의: "공동주택 법률 전문 AI 상담사"</li>
+          <li>핵심 지식: 공동주택관리법 전문 + 시행령 캐시</li>
+          <li>응답 형식: 구조화된 단계별 가이드</li>
+          <li>면책 조항: 모든 응답에 자동 포함</li>
+          <li>에스컬레이션: "전문가 필요" 조건 명시</li>
+          <li>언어 톤: 친근하되 전문적, 판단 자제</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h4>🗄️ RAG 데이터 수집 우선순위</h4>
+      <ul style="columns:2;gap:24px;">
+        <li>공동주택관리법 전문 + 시행령·시행규칙</li>
+        <li>국토교통부 유권해석 사례 (최근 5년)</li>
+        <li>법원 판례 (입대의 관련, 200건+)</li>
+        <li>중앙공동주택관리지원센터 상담 사례</li>
+        <li>아파트너 자체 상담 이력 (익명화)</li>
+        <li>황해 법무법인 처리 사례 (익명화)</li>
+        <li>아파트아이·피터팬 커뮤니티 FAQ</li>
+        <li>관리사무소 업무 매뉴얼 (국토부 배포)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 4. UX 개선 포인트 -->
+  <div class="sec">
+    <div class="sec-header">
+      <div class="sec-num">04</div>
+      <div class="sec-title">UX 개선 포인트 (실사용 기반)</div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <h4>🔴 현재 UX 문제점</h4>
+        <ul>
+          <li>해임 외 선택지 선택 시 다시 해임으로 유도 — 사용자 이탈 유발</li>
+          <li>오른쪽 패널이 결과 전까지 비어 있어 첫인상 허전함</li>
+          <li>모바일에서 3컬럼 레이아웃이 겹쳐 보임</li>
+          <li>법령 클릭 시 alert() 사용 — 브라우저 네이티브라 조잡</li>
+          <li>타이핑 인디케이터가 사라지기 전 스크롤이 튀는 현상</li>
+          <li>입력창 placeholder 텍스트가 목업과 다름 ("키피라이팅 대충")</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>🟢 개선 방향</h4>
+        <ul>
+          <li>시작 화면에 "오늘 자주 묻는 질문 3가지" 표시로 첫인상 개선</li>
+          <li>오른쪽 패널: 대화 시작 전부터 "자주 묻는 사례" 미리 표시</li>
+          <li>모바일: 하단 드로어로 오른쪽 패널 전환</li>
+          <li>법령·사례 상세: 인라인 슬라이드 아웃 패널 사용</li>
+          <li>대화 중간 저장·이어가기 기능 (로컬스토리지 최소 활용)</li>
+          <li>피드백 버튼 (👍/👎) 각 AI 응답 하단에 추가</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 법적 리스크 -->
+  <div class="sec">
+    <div class="sec-header">
+      <div class="sec-num">05</div>
+      <div class="sec-title">법적 리스크 및 대응 방안</div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>리스크</th><th>세부 내용</th><th>대응 방안</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>법률 자문 vs 법률 정보</strong></td>
+          <td>AI가 구체적 행동을 권고하면 변호사법 위반 소지</td>
+          <td>모든 응답에 "법률 자문이 아닌 일반 정보" 고지. 결정적 조언은 "전문가 상담 권유"로 종결</td>
+        </tr>
+        <tr>
+          <td><strong>개인정보 처리</strong></td>
+          <td>단지명·입주자 정보 입력 시 개인정보보호법 적용</td>
+          <td>단지명 등 식별 정보 비저장 원칙. 암호화 처리. 개인정보처리방침 명시</td>
+        </tr>
+        <tr>
+          <td><strong>AI 오류 책임</strong></td>
+          <td>잘못된 법령 해석으로 사용자가 피해를 입을 경우</td>
+          <td>이용약관에 AI 오류 면책 조항 포함. 중요 안건은 반드시 전문가 검토 권유</td>
+        </tr>
+        <tr>
+          <td><strong>판례 저작권</strong></td>
+          <td>법원 판례 전문 활용 시 저작권 문제 가능성</td>
+          <td>국가법령정보센터 공개 판례 활용 (공공저작물). 원문 링크 제공 방식 권장</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 6. 개발 로드맵 -->
+  <div class="sec">
+    <div class="sec-header">
+      <div class="sec-num">06</div>
+      <div class="sec-title">권장 개발 로드맵</div>
+    </div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-left"><span class="tl-phase">Sprint 1</span><div style="font-size:11px;color:#9ca3af;margin-top:4px;">1~2주</div></div>
+        <div class="tl-line"><div class="tl-dot"></div></div>
+        <div class="tl-content">
+          <h4>기반 인프라 구축</h4>
+          <ul>
+            <li>백엔드 API 서버 구축 (FastAPI or Next.js API Routes)</li>
+            <li>Claude API 연동 + 기본 시스템 프롬프트 작성</li>
+            <li>법적 면책 조항 및 이용약관 적용</li>
+            <li>기본 사용자 인증 (아파트너 SSO 연동)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-left"><span class="tl-phase">Sprint 2</span><div style="font-size:11px;color:#9ca3af;margin-top:4px;">3~4주</div></div>
+        <div class="tl-line"><div class="tl-dot"></div></div>
+        <div class="tl-content">
+          <h4>판례 DB + RAG 구축</h4>
+          <ul>
+            <li>공동주택 판례 200건 수집·정제·임베딩</li>
+            <li>Supabase pgvector 세팅 + 유사 사례 검색 API</li>
+            <li>공동주택관리법 전문 시스템 프롬프트 완성</li>
+            <li>해임 시나리오 실 AI 응답으로 전환</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-left"><span class="tl-phase">Sprint 3</span><div style="font-size:11px;color:#9ca3af;margin-top:4px;">5~6주</div></div>
+        <div class="tl-line"><div class="tl-dot"></div></div>
+        <div class="tl-content">
+          <h4>문서 생성 + 시나리오 확장</h4>
+          <ul>
+            <li>해임 동의서·안내문 자동 생성 (DOCX 출력)</li>
+            <li>관리비 분쟁, 층간소음 등 5개 시나리오 추가</li>
+            <li>대화 내역 저장·불러오기 (Supabase)</li>
+            <li>사용자 피드백 수집 (👍/👎)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-left"><span class="tl-phase">Sprint 4</span><div style="font-size:11px;color:#9ca3af;margin-top:4px;">7~8주</div></div>
+        <div class="tl-line"><div class="tl-dot"></div></div>
+        <div class="tl-content">
+          <h4>모바일 최적화 + 전문가 연결</h4>
+          <ul>
+            <li>모바일 반응형 완성 (하단 드로어 패널)</li>
+            <li>황해 법무법인 전화/카카오 연결 CTA</li>
+            <li>안전성 테스트 + 베타 단지 파일럿</li>
+            <li>사용 로그 분석 → 프롬프트 튜닝 1차</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 비용 추정 -->
+  <div class="sec">
+    <div class="sec-header">
+      <div class="sec-num">07</div>
+      <div class="sec-title">운영 비용 추정 (월간)</div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>항목</th><th>기준</th><th>월 비용 (추정)</th><th>비고</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Claude API</strong></td>
+          <td>월 5,000회 상담, 평균 2,000 토큰/회</td>
+          <td>약 30~50만원</td>
+          <td>Sonnet 기준. 프롬프트 캐싱 시 최대 90% 절감</td>
+        </tr>
+        <tr>
+          <td><strong>Supabase</strong></td>
+          <td>Pro 플랜 + pgvector</td>
+          <td>약 3~5만원</td>
+          <td>아파트너 기존 플랜 활용 가능</td>
+        </tr>
+        <tr>
+          <td><strong>서버 (Vercel/Fly.io)</strong></td>
+          <td>API 서버 호스팅</td>
+          <td>약 3~8만원</td>
+          <td>트래픽 따라 변동</td>
+        </tr>
+        <tr>
+          <td><strong>총계</strong></td>
+          <td>—</td>
+          <td><strong>약 36~63만원/월</strong></td>
+          <td>단지당 기준 수수료로 회수 가능</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="insight" style="margin-top:16px;">
+      💰 단지당 월 3~5만원 구독료 기준, <strong>10개 단지 계약 시 BEP 도달</strong>. 아파트집사 기존 단지 네트워크 (현재 ~150개 단지)를 활용하면 빠른 확산이 가능합니다.
+    </div>
+  </div>
+
+  <!-- 결론 -->
+  <div class="conclusion">
+    <h3>결론: 이 데모의 의미와 다음 단계</h3>
+    <p>
+      이번 데모는 <strong>UI/UX 검증과 시나리오 흐름 확인</strong>을 목적으로 제작되었습니다.<br><br>
+      가장 중요한 다음 단계는 <strong>① 실제 AI 엔진 연동</strong>과 <strong>② 공동주택 전문 판례 DB 구축</strong>입니다.
+      이 두 가지가 완성되면 현재 데모를 즉시 실서비스 수준으로 전환할 수 있습니다.<br><br>
+      황해 법무법인과의 협력을 통해 판례·사례 데이터 확보를, 아파트너 인프라를 통해 인증·단지 연동을 빠르게 해결할 수 있습니다.
+    </p>
+    <a class="cta" href="index.html">← 데모 체험하기</a>
+  </div>
+
+</div>
+</body>
+</html>
