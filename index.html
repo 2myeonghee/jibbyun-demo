@@ -8,7 +8,7 @@
   <style>
     :root {
       --sidebar-w: 64px;
-      --panel-w: 320px;
+      --panel-w: 360px;
       --primary: #1a2a3a;
       --accent: #5b6af4;
       --accent-bg: #ededff;
@@ -16,9 +16,9 @@
       --text-sm: #666;
       --border: #e5e7eb;
       --bg: #f7f8fa;
-      --user-bubble: #f0f1f4;
+      --user-bubble: #f5f5f7;
       --card-bg: #ffffff;
-      --header-h: 52px;
+      --header-h: 48px;
       --input-h: 64px;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -44,10 +44,10 @@
     .sb-icon {
       width:40px; height:40px; border-radius:10px;
       display:flex; align-items:center; justify-content:center;
-      cursor:pointer; color:#9ca3af; transition:all .15s;
+      cursor:pointer; color:#b0b5be; transition:all .15s;
     }
     .sb-icon:hover { background:#f3f4f6; color:#374151; }
-    .sb-icon.active { background:var(--accent-bg); color:var(--accent); }
+    .sb-icon.active { background:#e8e8ff; color:var(--accent); }
     .sb-icon svg { width:20px; height:20px; }
     .sb-label {
       font-size:10px; color:#9ca3af; font-weight:500;
@@ -83,17 +83,17 @@
     .chat-header .back-btn:hover { background:#f3f4f6; }
     .chat-header .help-btn {
       width:28px; height:28px; border-radius:50%;
-      border:1.5px solid #d1d5db; display:flex;
+      border:1px solid #dcdfe3; display:flex;
       align-items:center; justify-content:center;
       font-size:12px; color:#6b7280; cursor:pointer;
     }
     .chat-messages {
       flex:1;
       overflow-y:auto;
-      padding:24px 28px;
+      padding:24px 36px;
       display:flex;
       flex-direction:column;
-      gap:20px;
+      gap:24px;
       scroll-behavior:smooth;
     }
     .chat-messages::-webkit-scrollbar { width:4px; }
@@ -109,10 +109,10 @@
       padding:12px 16px;
       border-radius:16px;
       font-size:14px;
-      line-height:1.6;
+      line-height:1.7;
       color:var(--text);
     }
-    .msg.user .msg-bubble { background:var(--user-bubble); border-radius:16px 4px 16px 16px; }
+    .msg.user .msg-bubble { background:var(--user-bubble); border:1px solid #e2e4e8; border-radius:14px 4px 14px 14px; padding:14px 18px; }
     .msg.ai .msg-bubble {
       background:transparent;
       padding:0;
@@ -126,9 +126,9 @@
       display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;
     }
     .qbtn {
-      padding:8px 16px;
-      border:1.5px solid #d1d5db;
-      border-radius:24px;
+      padding:8px 20px;
+      border:1px solid #dcdfe3;
+      border-radius:8px;
       background:#fff;
       font-size:13px;
       font-family:'Noto Sans KR',sans-serif;
@@ -137,18 +137,18 @@
       transition:all .15s;
       white-space:nowrap;
     }
-    .qbtn:hover { border-color:#374151; background:#f9fafb; }
-    .qbtn.selected { border-color:#1a2a3a; background:#f0f1f4; color:#1a2a3a; font-weight:500; }
+    .qbtn:hover { border-color:#6c5ce7; background:rgba(108,92,231,.06); }
+    .qbtn.selected { border-radius:8px; border-color:#6c5ce7; background:rgba(108,92,231,.08); color:#6c5ce7; font-weight:600; }
     .qbtn:disabled { opacity:.45; cursor:default; pointer-events:none; }
 
     /* 탭 영역 */
     .result-tabs {
       margin-top:16px;
       border-bottom:1px solid var(--border);
-      display:flex; gap:0;
+      display:flex; gap:4px;
     }
     .rtab {
-      padding:10px 16px;
+      padding:10px 20px;
       font-size:13px; color:#6b7280;
       cursor:pointer; border-bottom:2px solid transparent;
       margin-bottom:-1px; transition:all .15s; white-space:nowrap;
@@ -159,7 +159,7 @@
     .tab-content { margin-top:12px; display:flex; flex-direction:column; gap:8px; }
     .case-card {
       border:1px solid var(--border);
-      border-radius:10px;
+      border-radius:8px;
       padding:14px 16px;
       background:#fff;
       cursor:pointer;
@@ -171,9 +171,9 @@
 
     /* 상세 케이스 카드 */
     .detail-card {
-      background:#f8f9fa;
-      border-radius:12px;
-      padding:20px;
+      background:#fafbfc;
+      border-radius:10px;
+      padding:20px 24px;
       margin-top:8px;
       font-size:13px;
       line-height:1.7;
@@ -195,9 +195,9 @@
     }
     .chat-input {
       flex:1;
-      border:1.5px solid #e5e7eb;
-      border-radius:28px;
-      padding:10px 18px;
+      border:1px solid #e5e7eb;
+      border-radius:24px;
+      padding:12px 20px;
       font-size:13.5px;
       font-family:'Noto Sans KR',sans-serif;
       outline:none; color:#1a1a1a;
@@ -207,8 +207,8 @@
     .chat-input:focus { border-color:#9ca3af; background:#fff; }
     .chat-input::placeholder { color:#b0b5be; }
     .send-btn {
-      width:38px; height:38px; flex-shrink:0;
-      background:#374151; border-radius:50%; border:none;
+      width:36px; height:36px; flex-shrink:0;
+      background:#9ca3af; border-radius:50%; border:none;
       cursor:pointer; display:flex; align-items:center; justify-content:center;
       transition:background .15s;
     }
@@ -219,7 +219,7 @@
     .right-panel {
       width:var(--panel-w);
       flex-shrink:0;
-      background:#fafafa;
+      background:#ffffff;
       border-left:1px solid var(--border);
       overflow-y:auto;
       display:flex;
@@ -229,11 +229,11 @@
     .right-panel::-webkit-scrollbar-thumb { background:#e5e7eb; border-radius:4px; }
 
     .rp-header {
-      padding:18px 20px 14px;
+      padding:20px 20px 16px;
       border-bottom:1px solid var(--border);
       background:#fff; flex-shrink:0;
     }
-    .rp-header h2 { font-size:15px; font-weight:700; color:#1a1a1a; margin-bottom:3px; }
+    .rp-header h2 { font-size:16px; font-weight:700; color:#1a1a1a; margin-bottom:3px; }
     .rp-header p { font-size:12px; color:#9ca3af; }
 
     .rp-empty {
@@ -242,8 +242,19 @@
       padding:32px 24px; text-align:center; color:#b0b5be;
     }
     .rp-empty svg { width:48px; height:48px; margin-bottom:12px; opacity:.4; }
-    .rp-empty p { font-size:13px; line-height:1.6; }
+    .rp-empty p { font-size:13px; line-height:1.7; }
 
+    .badge { display:none !important }
+
+    .rps-head { display:flex; align-items:center; justify-content:space-between; }
+    .rps-toggle { background:none; border:none; cursor:pointer; color:#9ca3af; font-size:13px; padding:0 2px; line-height:1; }
+    .rps-toggle:hover { color:#555; }
+    .rps-count { display:inline-flex; align-items:center; justify-content:center; background:#6c5ce7; color:#fff; border-radius:10px; font-size:9px; font-weight:700; padding:1px 6px; margin-left:4px; vertical-align:middle; }
+    .rps-count.warn { background:#f59e0b; }
+    .rps-count.success { background:#22c55e; }
+    .rp-section h3 { margin:0; }
+    .rps-body { }
+    .rps-body.hidden { display:none; }
     .rp-sections { padding:0 0 24px; }
 
     .rp-section {
@@ -252,13 +263,14 @@
       animation:fadeUp .3s ease;
     }
     .rp-section:last-child { border-bottom:none; }
+    .rp-section { border-top:1px solid #e5e7eb; }
     .rp-section h3 {
-      font-size:13px; font-weight:700; color:#1a1a1a;
+      font-size:14px; font-weight:700; color:#1a1a1a;
       margin-bottom:10px;
     }
     .rp-bullets { list-style:none; display:flex; flex-direction:column; gap:7px; }
     .rp-bullets li {
-      font-size:12.5px; color:#374151; line-height:1.6;
+      font-size:12.5px; color:#374151; line-height:1.7;
       padding-left:14px; position:relative;
     }
     .rp-bullets li::before {
@@ -268,7 +280,7 @@
     .rp-card {
       border:1px solid var(--border);
       border-radius:8px;
-      padding:11px 14px;
+      padding:12px 16px;
       background:#fff;
       display:flex; justify-content:space-between; align-items:center;
       margin-bottom:7px; cursor:pointer; transition:all .15s;
@@ -407,9 +419,12 @@
 
   <!-- ── 오른쪽 패널 ────────────────────────────────── -->
   <aside class="right-panel" id="rightPanel">
-    <div class="rp-header">
-      <h2 id="rpTitle">AI 상담 요약</h2>
-      <p id="rpSub">상담을 시작하면 요약 내용이 표시됩니다</p>
+    <div class="rp-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+      <div>
+        <h2 id="rpTitle">AI 상담 요약</h2>
+        <p id="rpSub">상담을 시작하면 요약 내용이 표시됩니다</p>
+      </div>
+      <button onclick="showHelp()" style="flex-shrink:0;width:26px;height:26px;border-radius:50%;border:1px solid #e5e7eb;background:#fff;font-size:13px;color:#9ca3af;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">?</button>
     </div>
     <div id="rpBody">
       <div class="rp-empty">
@@ -789,7 +804,7 @@ function updateRightPanel() {
     <div class="rp-sections">
 
       <div class="rp-section">
-        <h3>비교 분석 결과</h3>
+        <div class="rps-head"><h3>📊 비교 분석 결과 <span class="rps-count">3건</span></h3><button class="rps-toggle" onclick="toggleSection(this)">∧</button></div><div class="rps-body">
         <ul class="rp-bullets">
           <li>총 32개의 유사 사례를 분석했습니다.</li>
           <li>해임에 성공한 27개의 공통점은 안내문 3회 이상 발송과 해임 사유의 구체적 명시입니다.</li>
@@ -798,7 +813,7 @@ function updateRightPanel() {
       </div>
 
       <div class="rp-section">
-        <h3>우리 단지 적용</h3>
+        </div></div><div class="rp-section"><div class="rps-head"><h3>🏢 우리 단지 적용</h3><button class="rps-toggle" onclick="toggleSection(this)">∧</button></div><div class="rps-body">
         <ul class="rp-bullets">
           <li>세대수(1,200)와 사유(회의 미소집)가 ○○아파트와 유사하므로 같은 전략이 유효합니다.</li>
           <li>안내문 3회 발송 시 참여율 60% 이상 달성 가능성이 높습니다.</li>
@@ -807,7 +822,7 @@ function updateRightPanel() {
       </div>
 
       <div class="rp-section">
-        <h3>주의사항</h3>
+        </div></div><div class="rp-section"><div class="rps-head"><h3>⚠️ 주의사항 <span class="rps-count warn">4건</span></h3><button class="rps-toggle" onclick="toggleSection(this)">∧</button></div><div class="rps-body">
         <ul class="rp-bullets">
           <li>서면 동의 없이 투표만으로 진행하면 해임 절차가 무효 처리될 수 있습니다.</li>
           <li>관리방식 변경 등 다른 안건과 동시에 진행하지 마세요. 절차 하자 위험이 큽니다.</li>
@@ -817,57 +832,41 @@ function updateRightPanel() {
       </div>
 
       <div class="rp-section">
-        <h3>유사 사례</h3>
-        <div class="rp-card" onclick="switchTabAndFocus('cases',0)">
-          <div class="rpc-left">
-            <div class="rpc-title">○○아파트 (1,200세대, 서울 강남)</div>
-            <div class="rpc-sub">안내문 반복 발송으로 해임 완료 ✓</div>
-          </div>
-          <svg class="rpc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="rp-card" onclick="switchTabAndFocus('cases',1)">
-          <div class="rpc-left">
-            <div class="rpc-title">○○아파트 (1,500세대, 인천 부평)</div>
-            <div class="rpc-sub">안내문 반복 발송으로 해임 완료 ✓</div>
-          </div>
-          <svg class="rpc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="rp-card" onclick="switchTabAndFocus('cases',2)">
-          <div class="rpc-left">
-            <div class="rpc-title">○○아파트 (800세대, 경기 부천)</div>
-            <div class="rpc-sub">동시 안건 진행으로 절차 하자 ✗</div>
-          </div>
-          <svg class="rpc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
+        </div></div><div class="rp-section"><div class="rps-head"><h3>📋 유사 사례 <span class="rps-count">3건</span></h3><button class="rps-toggle" onclick="toggleSection(this)">∧</button></div><div class="rps-body">
+        <ol style="list-style:decimal;padding-left:20px;margin:0;">
+          <li style="margin-bottom:8px;"><a onclick="switchTabAndFocus('cases',0)" style="text-decoration:underline;color:#6c5ce7;cursor:pointer;font-size:13px;font-weight:600;">○○아파트 (1,200세대, 서울 강남)</a><div style="font-size:11px;color:#b0b5be;margin-top:2px;">안내문 반복 발송 → 해임 완료 ✓</div></li>
+          <li style="margin-bottom:8px;"><a onclick="switchTabAndFocus('cases',1)" style="text-decoration:underline;color:#6c5ce7;cursor:pointer;font-size:13px;font-weight:600;">○○아파트 (1,500세대, 인천 부평)</a><div style="font-size:11px;color:#b0b5be;margin-top:2px;">3단계 안내 전략 → 해임 완료 ✓</div></li>
+          <li><a onclick="switchTabAndFocus('cases',2)" style="text-decoration:underline;color:#ef4444;cursor:pointer;font-size:13px;font-weight:600;">○○아파트 (800세대, 경기 부천)</a><div style="font-size:11px;color:#b0b5be;margin-top:2px;">동시 안건 진행 → 절차 하자 ✗</div></li>
+        </ol>
       </div>
 
       <div class="rp-section">
-        <h3>생성된 문서</h3>
+        </div></div><div class="rp-section"><div class="rps-head"><h3>📄 생성된 문서 <span class="rps-count success">3건</span></h3><button class="rps-toggle" onclick="toggleSection(this)">∧</button></div><div class="rps-body">
         <div class="rp-card" onclick="downloadDoc('해임 동의서 초안')">
           <div class="rpc-left">
             <div class="rpc-title">해임 동의서 초안</div>
-            <div class="rpc-sub">서면 동의 수집용</div>
+            <div class="rpc-sub">.docx / .pdf / .hwp</div>
           </div>
           <svg class="rpc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </div>
         <div class="rp-card" onclick="downloadDoc('투표 요청서')">
           <div class="rpc-left">
             <div class="rpc-title">투표 요청서</div>
-            <div class="rpc-sub">임시회의 소집 요청서</div>
+            <div class="rpc-sub">.docx / .pdf / .hwp</div>
           </div>
           <svg class="rpc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </div>
         <div class="rp-card" onclick="downloadDoc('투표 안내문')">
           <div class="rpc-left">
             <div class="rpc-title">투표 안내문</div>
-            <div class="rpc-sub">세대 배포용 공고문</div>
+            <div class="rpc-sub">다음 단계에서 생성</div>
           </div>
           <svg class="rpc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </div>
       </div>
 
       <div class="rp-section">
-        <h3>관련 법령</h3>
+        </div></div><div class="rp-section"><div class="rps-head"><h3>⚖️ 관련 법령</h3><button class="rps-toggle" onclick="toggleSection(this)">∧</button></div><div class="rps-body">
         <div class="rp-card" onclick="showLawDetail('공동주택관리법 시행령 제12조①')">
           <div class="rpc-left">
             <div class="rpc-title">공동주택관리법 시행령 제12조①</div>
@@ -1007,6 +1006,15 @@ function goBack() {
 function showHelp() {
   document.getElementById('helpModal').classList.add('visible');
 }
+
+function toggleSection(btn) {
+  const sec = btn.closest('.rp-section');
+  const body = sec.querySelector('.rps-body');
+  if (!body) return;
+  const isHidden = body.classList.toggle('hidden');
+  btn.textContent = isHidden ? '∨' : '∧';
+}
+
 function closeHelp(e) {
   if (!e || e.target === document.getElementById('helpModal')) {
     document.getElementById('helpModal').classList.remove('visible');
